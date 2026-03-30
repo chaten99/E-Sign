@@ -18,16 +18,19 @@ if (cluster.isPrimary) {
 
   cluster.on("exit", (worker, code, signal) => {
     console.log(
-      `Worker ${worker.process.pid} died. Code: ${code}, Signal: ${signal}`,
+      `Worker ${worker.process.pid} died. Code: ${code}, Signal: ${signal}`
     );
+    cluster.fork();
   });
 } else {
-  connectDB().then(() => {
-    app.listen(PORT, () => {
-      console.log(`Worker ${process.pid} is listening on port ${PORT}`);
+  connectDB()
+    .then(() => {
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Worker ${process.pid} is listening on port ${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error("Worker DB connection failed:", err);
+      process.exit(1);
     });
-  }).catch(err => {
-    console.error("Worker DB connection failed:", err);
-    process.exit(1);
-  });
 }
